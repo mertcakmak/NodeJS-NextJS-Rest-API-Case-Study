@@ -1,8 +1,12 @@
 "use strict";
+const NodeCache = require('node-cache');
 const waterfall = require('async-waterfall');
 const axios = require('axios');
 const dotenv = require('dotenv');
 dotenv.config();
+
+const searchCache = new NodeCache({stdTTL:120})
+
 exports.search  = (req, res)=>{
     const rs = {total:0, pagination:{} , data:[],error:null};
     const keyword = req.query.keyword || '';
@@ -14,6 +18,16 @@ exports.search  = (req, res)=>{
     if(keyword===''){
         rs.error = 'missing keyword'
         res.status(422).send(rs);
+        return
+    }
+
+    const cacheKey = `${keyword}_${page}`;
+    const cacheRs = searchCache.get(cacheKey);
+
+    if(cacheRs!==undefined){
+        console.log('cacheden cevap geldi');
+        res.send(cacheRs);
+        return
     }
 
     let data = []
@@ -34,7 +48,6 @@ exports.search  = (req, res)=>{
             })
         },
         (data, cb)=>{
-            console.log('BBBBB');
             axios({ method:'get', url:`${process.env.API_URL}&s=${keyword}&page=${startingPage+1}` })
             .then((response)=>{
                 if(response.data.Response==='True'){
@@ -62,12 +75,17 @@ exports.search  = (req, res)=>{
             rs.pagination.nextPage = nextPage;
             rs.pagination.prevPage = prevPage;
             rs.pagination.pageCount = pageCount;
-
             cb(null, data);
         }
     ],(e,data)=>{
         rs.error = e;
         rs.data = data;
+        if(res.statusCode===200){ searchCache.set(cacheKey,rs); }
         res.send(rs);
     })
+}
+
+exports.clear = (req,res)=>{
+    searchCache.flushAll();
+    res.status(200).send(null);
 }
