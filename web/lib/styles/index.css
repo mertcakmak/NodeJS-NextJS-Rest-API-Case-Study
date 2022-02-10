@@ -1,0 +1,6 @@
+/***
+Global CSS - do not alter the import order
+***/
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
