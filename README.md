@@ -1,2 +1,2 @@
-# AI-Tayer-Digital-Fullstack-Case-Study
-AI Tayer Digital Fullstack Case Study
+# NodeJS-NextJS-Rest-API-Case-Study
+NodeJS-NextJS-Rest-API-Case-Study
